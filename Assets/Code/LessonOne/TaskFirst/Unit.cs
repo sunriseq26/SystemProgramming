@@ -28,8 +28,6 @@ namespace LessonOne
                 _health = 100;
                 _isMax = true;
             }
-            
-            Debug.Log(_health);
         }
 
         private IEnumerator HealingCoroutine(float seconds, int factor)
