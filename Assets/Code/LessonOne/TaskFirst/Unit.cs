@@ -9,7 +9,8 @@ namespace LessonOne
         [SerializeField] private int _health;
 
         private bool _isFinish = true;
-        private bool _isMax;
+        private bool _isMax = false;
+        private bool _isTime = false;
 
         private void Update()
         {
@@ -18,7 +19,7 @@ namespace LessonOne
 
         private void ReceiveHealing()
         {
-            if (_isFinish && _health < 100)
+            if (_isFinish && !_isTime && _health < 100)
             {
                 _isFinish = false;
                 StartCoroutine(HealingCoroutine(0.5f, 5));
@@ -28,13 +29,27 @@ namespace LessonOne
                 _health = 100;
                 _isMax = true;
             }
+            
+            Debug.Log(_health);
         }
 
         private IEnumerator HealingCoroutine(float seconds, int factor)
         {
+            if (_isMax)
+            {
+                yield break;
+            }
+
+            StartCoroutine(Timer(3.0f));
             yield return new WaitForSeconds(seconds);
             _health += factor;
             _isFinish = true;
+        }
+
+        private IEnumerator Timer(float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
+            _isTime = true;
         }
     }
 }
