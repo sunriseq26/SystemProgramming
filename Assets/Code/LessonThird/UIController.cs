@@ -36,11 +36,11 @@ public class UIController : MonoBehaviour
     {
         buttonStartServer.onClick.AddListener(() => StartServer());
         buttonShutDownServer.onClick.AddListener(() => ShutDownServer());
-        buttonConnectClient.onClick.AddListener(() => Connect());
+        buttonConnectClient.onClick.AddListener(() => Connect(nameInputField.text));
         buttonDisconnectClient.onClick.AddListener(() => Disconnect());
         buttonSendMessage.onClick.AddListener(() => SendMessage());
         inputField.onEndEdit.AddListener((text) =>SendMessage());
-        nameInputField.onEndEdit.AddListener((text) => SendName() );
+        nameInputField.onEndEdit.AddListener((text) => EnableInteractableConnect());
         client.onMessageReceive += ReceiveMessage;
     }
 
@@ -49,15 +49,12 @@ public class UIController : MonoBehaviour
     
     private void ShutDownServer() =>    
         server.ShutDownServer();
-    
-    private void Connect() =>    
-        client.Connect();
 
-    private void Disconnect()
-    {
-        client.Disconnect();
-        SendName();
-    }      
+    private void Connect(string message) =>
+        client.Connect(message);   
+
+    private void Disconnect() =>
+        client.Disconnect();   
 
     private void SendMessage()
     {
@@ -65,9 +62,9 @@ public class UIController : MonoBehaviour
         inputField.text = "";
     }
 
-    private void SendName()
+    private void EnableInteractableConnect()
     {
-        client.SendMessage(nameInputField.text);
+        buttonConnectClient.interactable = true;
     }
 
     public void ReceiveMessage(object message) =>    

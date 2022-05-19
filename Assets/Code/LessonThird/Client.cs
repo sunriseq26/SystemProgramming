@@ -22,7 +22,7 @@ public class Client : MonoBehaviour
     private bool isConnected = false;
     private byte error;
 
-    public void Connect()
+    public void Connect(string message)
     {
         if (isConnected)
             return;
@@ -39,7 +39,10 @@ public class Client : MonoBehaviour
         connectionID = NetworkTransport.Connect(hostID, "127.0.0.1", serverPort, 0, out error);
 
         if ((NetworkError)error == NetworkError.Ok)
+        {
             isConnected = true;
+            SendMessage(message);
+        }
         else
             Debug.Log((NetworkError)error);
     }
@@ -95,7 +98,7 @@ public class Client : MonoBehaviour
         }
     }
 
-    public void SendMessage(string message, short messageType)
+    public void SendMessage(string message)
     { 
         byte[] buffer = Encoding.Unicode.GetBytes(message);
         NetworkTransport.Send(hostID, connectionID, reliableChannel, buffer, message.Length * sizeof(char), out error);
