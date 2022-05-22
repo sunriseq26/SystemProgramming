@@ -52,21 +52,29 @@ public class RayShooter : FireAction
         
         var point = new Vector3(Camera.main.pixelWidth / 2, Camera.main.pixelHeight / 2, 0);
         var ray = camera.ScreenPointToRay(point);
-        if (!Physics.Raycast(ray, out var hit))
+        var hits = Physics.RaycastAll(ray);
+        
+        Debug.Log(hits.Length);
+
+        for (int i = 0; i < hits.Length - 1; i++)
         {
-            yield break;
+            if (!hits[i].transform)
+            {
+                yield break;
+            }
+
+
+            var shoot = bullets.Dequeue();
+            bulletCount = bullets.Count.ToString();
+            ammunition.Enqueue(shoot);
+            shoot.SetActive(true);
+            shoot.transform.position = hits[i].point;
+            shoot.transform.parent = hits[i].transform;
+
+            yield return new WaitForSeconds(2.0f);
+            shoot.SetActive(false);
         }
-
-
-        var shoot = bullets.Dequeue();
-        bulletCount = bullets.Count.ToString();
-        ammunition.Enqueue(shoot);
-        shoot.SetActive(true);
-        shoot.transform.position = hit.point;
-        shoot.transform.parent = hit.transform;
-
-        yield return new WaitForSeconds(2.0f);
-        shoot.SetActive(false);
+        
     }
 }
 
