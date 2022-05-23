@@ -79,7 +79,7 @@ public class Client : MonoBehaviour
 
                 case NetworkEventType.DataEvent:
 
-                    string message = Encoding.Unicode.GetString(recBuffer, 2, dataSize);
+                    string message = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
                     onMessageReceive?.Invoke(message);
                     Debug.Log(message);
                     break;
