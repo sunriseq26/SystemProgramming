@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using Mirror;
 
@@ -36,11 +37,21 @@ public class PlayerCharacter : Character
 
         base.Initiate();
         fireAction = gameObject.AddComponent<RayShooter>();
+        fireAction.Init(this);
         fireAction.Reloading();
         characterController = GetComponentInChildren<CharacterController>();
         characterController ??= gameObject.AddComponent<CharacterController>();
         mouseLook = GetComponentInChildren<MouseLook>();
         mouseLook ??= gameObject.AddComponent<MouseLook>();
+    }
+
+    [ServerCallback]
+    public void GetDamage(int damage)
+    {
+        health -= damage;
+
+        if (health <= 0)
+            connection.Disconnect();
     }
 
     public override void Movement()
@@ -99,5 +110,60 @@ public class PlayerCharacter : Character
         var posYBul = Camera.main.pixelHeight - bulletCountSize;
         GUI.Label(new Rect(posX, posY, size, size), "+");
         GUI.Label(new Rect(posXBul, posYBul, bulletCountSize * 2, bulletCountSize * 2), info);
+    }
+    
+    [Command]
+    internal void CmdShoot(Ray ray)
+    {
+        var hits = Physics.RaycastAll(ray);
+
+        PlayerCharacter ourPlayer = GetComponent<PlayerCharacter>();
+        PlayerCharacter otherPlayer = null;
+        Transform targetTransform = null;
+        for (int i = hits.Length - 1; i > -1; --i)
+        {
+            PlayerCharacter playerCharacter = hits[i].transform.GetComponent<PlayerCharacter>();
+            if (playerCharacter == null)
+            {
+                targetTransform = hits[i].transform;
+                break;
+            }
+
+            if (playerCharacter.netId == ourPlayer.netId)
+            {
+                continue;
+            }
+            else
+            {
+                otherPlayer = playerCharacter;
+                targetTransform = hits[i].transform;
+                break;
+            }
+        }
+        
+        otherPlayer?.GetDamage(FireAction.DAMAGE);
+        
+        TargetShootResult(ourPlayer.connection, targetTransform != null, targetTransform.position);
+    }
+    
+    [TargetRpc]
+    private void TargetShootResult(NetworkConnection connect, bool isShootSucces, Vector3 position)
+    {
+        if (isShootSucces)
+        {
+            StartCoroutine(ShootResult(position));
+        }
+    }
+    
+    private IEnumerator ShootResult(Vector3 position)
+    {
+        var shoot = fireAction.Bullets.Dequeue();
+        fireAction.bulletCount = fireAction.Bullets.Count.ToString();
+        fireAction.Ammunition.Enqueue(shoot);
+        shoot.SetActive(true);
+        shoot.transform.position = position;
+    
+        yield return new WaitForSeconds(2.0f);
+        shoot.SetActive(false);
     }
 }

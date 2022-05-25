@@ -2,19 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Mirror;
 using UnityEngine;
 
-public abstract class FireAction : MonoBehaviour
+public abstract class FireAction : NetworkBehaviour
 {
+    public const int DAMAGE = 10;
+    
     [SerializeField]
     private GameObject bulletPrefab;
     [SerializeField]
     private int startAmmunition = 20;
 
-    public string bulletCount { get; protected set; } = string.Empty;
-    protected Queue<GameObject> bullets = new Queue<GameObject>();
-    protected Queue<GameObject> ammunition = new Queue<GameObject>();
+    public string bulletCount { get; protected internal set; } = string.Empty;
+    public Queue<GameObject> Bullets { get; private set; } = new Queue<GameObject>();
+    public Queue<GameObject> Ammunition { get; private set; } = new Queue<GameObject>();
     protected bool reloading = false;
+
+    protected PlayerCharacter character;
 
     protected virtual void Start()
     {
@@ -31,23 +36,28 @@ public abstract class FireAction : MonoBehaviour
                 bullet = Instantiate(bulletPrefab);
             }
             bullet.SetActive(false);
-            ammunition.Enqueue(bullet);
+            Ammunition.Enqueue(bullet);
         }
+    }
+
+    public void Init(PlayerCharacter playerCharacter)
+    {
+        character = playerCharacter;
     }
 
     public virtual async void Reloading()
     {
-        bullets = await Reload();
+        Bullets = await Reload();
     }
 
     protected virtual void Shooting()
     {
-        if (bullets.Count == 0)
+        if (Bullets.Count == 0)
         {
             Reloading();
         }
     }
-
+    
     private async Task<Queue<GameObject>> Reload()
     {
         if (!reloading)
@@ -57,31 +67,31 @@ public abstract class FireAction : MonoBehaviour
             return await Task.Run(delegate
             {
                 var cage = 10;
-                if (bullets.Count < cage)
+                if (Bullets.Count < cage)
                 {
                     Thread.Sleep(3000);
-                    var bullets = this.bullets;
+                    var bullets = this.Bullets;
                     while (bullets.Count > 0)
                     {
-                        ammunition.Enqueue(bullets.Dequeue());
+                        Ammunition.Enqueue(bullets.Dequeue());
                     }
-                    cage = Mathf.Min(cage, ammunition.Count);
+                    cage = Mathf.Min(cage, Ammunition.Count);
                     if (cage > 0)
                     {
                         for (var i = 0; i < cage; i++)
                         {
-                            var sphere = ammunition.Dequeue();
+                            var sphere = Ammunition.Dequeue();
                             bullets.Enqueue(sphere);
                         }
                     }
                 }
                 reloading = false;
-                return bullets;
+                return Bullets;
             });
         }
         else
         {
-            return bullets;
+            return Bullets;
         }
     }
 
@@ -98,7 +108,7 @@ public abstract class FireAction : MonoBehaviour
             bulletCount = " / ";
             yield return new WaitForSeconds(0.01f);
         }
-        bulletCount = bullets.Count.ToString();
+        bulletCount = Bullets.Count.ToString();
         yield return null;
     }
 }
