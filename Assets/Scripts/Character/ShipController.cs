@@ -42,10 +42,11 @@ namespace Characters
             if (_rigidbody == null)            
                 return;
             
-            gameObject.name = _playerName;
             _cameraOrbit = FindObjectOfType<CameraOrbit>();
             _cameraOrbit.Initiate(_cameraAttach == null ? transform : _cameraAttach);
-            playerLabel = GetComponentInChildren<PlayerLabel>();
+            playerLabel = GetComponent<PlayerLabel>();
+            _playerName = netId.ToString();
+            gameObject.name = _playerName;
             base.OnStartAuthority();
         }
 

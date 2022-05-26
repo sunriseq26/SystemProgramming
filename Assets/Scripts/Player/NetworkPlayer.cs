@@ -27,7 +27,7 @@ namespace Players
 
             playerCharacter = Instantiate(playerPrefab, transform.position, transform.rotation);
             
-
+            
             NetworkServer.Spawn(playerCharacter, connectionToClient);
         }
     }

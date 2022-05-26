@@ -12,6 +12,8 @@ public class PlanetSpawner : NetworkBehaviour
         base.OnStartServer();
 
         GameObject planetInstance = Instantiate(_planetPrefab.gameObject);
+        planetInstance.name = _planetPrefab.name;
+        Debug.Log(planetInstance.name);
         NetworkServer.Spawn(planetInstance, NetworkServer.localConnection);
 
         Destroy(gameObject);
