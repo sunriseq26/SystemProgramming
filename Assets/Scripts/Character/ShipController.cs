@@ -19,6 +19,7 @@ namespace Characters
         [SyncVar] public string _playerName;
 
         private Vector3 currentPositionSmoothVelocity;
+        private Vector3 startPosition;
 
         protected override float speed => _shipSpeed;
 
@@ -45,7 +46,7 @@ namespace Characters
             _cameraOrbit = FindObjectOfType<CameraOrbit>();
             _cameraOrbit.Initiate(_cameraAttach == null ? transform : _cameraAttach);
             playerLabel = GetComponent<PlayerLabel>();
-            //playerLabel.name = _playerName;
+            startPosition = transform.position;
             base.OnStartAuthority();
         }
 
@@ -106,6 +107,16 @@ namespace Characters
         private void LateUpdate()
         {
             _cameraOrbit?.CameraMovement();
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.GetComponent<PlanetOrbit>() || other.GetComponent<ShipController>())
+            {
+                NetworkServer.SetClientNotReady(connectionToClient);
+                transform.position = startPosition;
+                NetworkServer.SetClientReady(connectionToClient);
+            }
         }
     }
 }
