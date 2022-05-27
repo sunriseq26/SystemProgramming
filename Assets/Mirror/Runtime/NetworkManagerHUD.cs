@@ -1,5 +1,7 @@
 // vis2k: GUILayout instead of spacey += ...; removed Update hotkeys to avoid
 // confusion if someone accidentally presses one.
+
+using System;
 using UnityEngine;
 
 namespace Mirror
@@ -11,10 +13,14 @@ namespace Mirror
     [HelpURL("https://mirror-networking.gitbook.io/docs/components/network-manager-hud")]
     public class NetworkManagerHUD : MonoBehaviour
     {
+        string stringToEdit = "Enter...";
+
         NetworkManager manager;
 
         public int offsetX;
         public int offsetY;
+
+        public string PlayerName { get; set; }
 
         void Awake()
         {
@@ -55,6 +61,12 @@ namespace Mirror
         {
             if (!NetworkClient.active)
             {
+                // Enter Name
+                GUILayout.BeginHorizontal();
+                GUILayout.Label($"Your name");
+                manager.playerPrefab.name = GUILayout.TextField(manager.playerPrefab.name, 15);
+                GUILayout.EndHorizontal();
+                
                 // Server + Client
                 if (Application.platform != RuntimePlatform.WebGLPlayer)
                 {

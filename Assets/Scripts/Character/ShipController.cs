@@ -16,7 +16,7 @@ namespace Characters
         private float _shipSpeed;
         private Rigidbody _rigidbody;
 
-        [SyncVar] private string _playerName;
+        [SyncVar] public string _playerName;
 
         private Vector3 currentPositionSmoothVelocity;
 
@@ -41,12 +41,11 @@ namespace Characters
             _rigidbody = GetComponent<Rigidbody>();
             if (_rigidbody == null)            
                 return;
-            
+
             _cameraOrbit = FindObjectOfType<CameraOrbit>();
             _cameraOrbit.Initiate(_cameraAttach == null ? transform : _cameraAttach);
             playerLabel = GetComponent<PlayerLabel>();
-            _playerName = netId.ToString();
-            gameObject.name = _playerName;
+            //playerLabel.name = _playerName;
             base.OnStartAuthority();
         }
 

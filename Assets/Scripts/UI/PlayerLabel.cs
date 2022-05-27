@@ -19,7 +19,10 @@ namespace UI
             var collider = GetComponent<Collider>();
             if (collider != null && camera.Visible(collider))
             {
-                GUI.Label(new Rect(new Vector2(position.x, Screen.height - position.y), new Vector2(10, name.Length * 10.5f)), name, style);
+                var nameString = name;
+                string[] names = nameString.Split('-');
+                var nameResult = names[0];
+                GUI.Label(new Rect(new Vector2(position.x, Screen.height - position.y), new Vector2(10, nameResult.Length * 10.5f)), nameResult, style);
             }
         }
     }
