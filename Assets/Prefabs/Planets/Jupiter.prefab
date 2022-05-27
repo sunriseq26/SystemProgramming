@@ -112,7 +112,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  aroundPoint: {fileID: 0}
+  aroundPoint: {x: 0, y: 0, z: 0}
   smoothTime: 0.3
   circleInSecond: 0.006
   offsetSin: 1
@@ -150,5 +150,5 @@ MonoBehaviour:
   sceneId: 0
   serverOnly: 0
   visible: 0
-  m_AssetId: 
+  m_AssetId: 02217303ecac3c04fb84db7a6533fbfc
   hasSpawned: 0
