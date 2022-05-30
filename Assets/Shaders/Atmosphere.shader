@@ -4,84 +4,75 @@ Shader "Unlit/Atmosphere"
 {
     Properties
     {
-        _Color ("Color", Color) = (1,0.6,0,1)
-		_GlowColor("Glow Color", Color) = (1,1,0,1)
-		_Strength("Glow Strength", Range(5.0, 1.0)) = 2.0
-		_GlowRange("Glow Range", Range(0.1,1)) = 0.6
+        _Color ("Color", Color) = (1,1,1,1)
+        _MainTex ("Albedo (RGB)", 2D) = "white" {}
+        _Glossiness ("Smoothness", Range(0,1)) = 0.5
+        _Metallic ("Metallic", Range(0,1)) = 0.0
+        
+        _AtmosphereRadius("AtmosphereRadius", Range(1,1.5)) = 1.0
+        _PlanetRadius("PlanetRadius", Range(0,1)) = 1.0
     }
     SubShader
-    {
-        Pass
-        {
-            Tags { "LightMode"="ForwardBase" }
+    {        
+    	Tags { "RenderType"="Opaque" }
+        LOD 200
+
+        CGPROGRAM
+            #pragma surface surf Standard fullforwardshadows
+
+            #pragma target 3.0
+
+            sampler2D _MainTex;
             
-            CGPROGRAM
-            
-            #pragma vertex vert
-			#pragma fragment frag
+            struct Input
+            {
+                float2 uv_MainTex;
+            };
 
-			float4 _Color;
+            half _Glossiness;
+            half _Metallic;
+            fixed4 _Color;
 
-			float4 vert(float4 vertexPos : POSITION) : SV_POSITION {
-				return UnityObjectToClipPos(vertexPos);
-			}
+            void surf (Input IN, inout SurfaceOutputStandard o)
+            {
+                fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
+                o.Albedo = c.rgb;
+                o.Metallic = _Metallic;
+                o.Smoothness = _Glossiness;
+                o.Alpha = c.a;
+            }
+            ENDCG      
 
-			float4 frag(void) : COLOR {
-				return _Color;
-			}
-            
-            ENDCG
-        }
-    	
-    	Pass 
-    	{
-			Tags { "LightMode"="ForwardBase" "Queue"="Transparent" "RenderType"="Transparent" }
-			ZWrite Off
-			Blend SrcAlpha OneMinusSrcAlpha
+        
+		Tags { "RenderType"="Transparent" "Queue"="Transparent"}
+			LOD 200    	
+    		Cull Back            
+			Blend One One
+		
+		    CGPROGRAM           
+		    
+		    #pragma surface surf Standard vertex:vert
+            #include <UnityPBSLighting.cginc>
 
-			CGPROGRAM
-
-			#pragma vertex vert
-			#pragma fragment frag
-			#include "UnityCG.cginc"
-
-			float4 _GlowColor;
-			float _Strength;
-			float _GlowRange;
-
-			struct a2v {
-				float4 vertex : POSITION;
-				float4 normal : NORMAL;
+            struct Input
+            {
+				float2 uv_MainTex;
+				float3 worldPos;
+				float3 centre;
 			};
+		    
+            float _AtmosphereRadius;
+            float _PlanetRadius;
 
-			struct v2f {
-				float4 position : SV_POSITION;
-				float4 col : COLOR;
-			};
+            void vert (inout appdata_full v, out Input o)
+            {
+	            UNITY_INITIALIZE_OUTPUT(Input,o);
+	            v.vertex.xyz += v.normal * (_AtmosphereRadius - _PlanetRadius);
+            	o.centre = mul(unity_ObjectToWorld, half4(0,0,0,1));
+            }
 
-			v2f vert(a2v a) {
-				v2f o;
-				float4x4 modelMatrix = unity_ObjectToWorld;
-				float4x4 modelMatrixInverse = unity_WorldToObject;
-				float3 normalDirection = normalize(mul(a.normal, modelMatrixInverse)).xyz;
-				float3 viewDirection = normalize(_WorldSpaceCameraPos - mul(modelMatrix, a.vertex).xyz);
-				float4 pos = a.vertex + (a.normal * _GlowRange);
-				o.position = UnityObjectToClipPos(pos);
-				float3 normalDirectionT = normalize(normalDirection);
-				float3 viewDirectionT = normalize(viewDirection);
-				float strength = abs(dot(viewDirectionT, normalDirectionT));
-				float opacity = pow(strength, _Strength);
-				float4 col = float4(_GlowColor.xyz, opacity);
-				o.col = col;
-				return o;
-			}
-
-			float4 frag(v2f i) : COLOR {
-				return i.col;
-			}
-
-			ENDCG
-		}
+		    void surf (Input IN, inout SurfaceOutputStandard o) {}
+		    ENDCG
     }
 	FallBack "Diffuse"
 }
